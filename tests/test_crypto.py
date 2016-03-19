@@ -2461,9 +2461,27 @@ class FunctionTests(TestCase):
         :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it
         is passed an encrypted PEM and an incorrect passphrase.
         """
-        self.assertRaises(
+        exception = self.assertRaises(
             Error,
             load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, b("quack"))
+
+        self.assertEqual(
+            ([('digital envelope routines', 'EVP_DecryptFinal_ex', 'bad decrypt'),
+            ('PEM routines', 'PEM_do_header', 'bad decrypt')],),
+            exception.args)
+
+    def test_load_privatekey_noPassword(self):
+        """
+        :py:obj:`load_privatekey` raises :py:obj:`OpenSSL.crypto.Error` when it
+        is passed an encrypted PEM and an empty passphrase.
+        """
+        exception = self.assertRaises(
+            Error,
+            load_privatekey, FILETYPE_PEM, encryptedPrivateKeyPEM, b("quack"))
+
+        self.assertEqual(
+            ([('PEM routines', 'PEM_do_header', 'bad password read')],),
+            exception.args)
 
     def test_load_privatekey_passphraseWrongType(self):
         """
